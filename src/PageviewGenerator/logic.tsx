@@ -3,7 +3,7 @@ import cuid from "cuid"
 import { loremIpsum } from "lorem-ipsum"
 import axios from 'axios'
 
-const BASE_URL = 'http://18.218.168.41:3100/api/v1'
+const BASE_URL = 'https://dotfi-node-backend.herokuapp.com/api/v1'
 
 export interface Pageview {
   id: string
