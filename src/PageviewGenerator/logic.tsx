@@ -1,8 +1,11 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import cuid from "cuid"
 import { loremIpsum } from "lorem-ipsum"
+import axios from 'axios'
 
-interface Pageview {
+const BASE_URL = 'http://18.218.168.41:3100/api/v1'
+
+export interface Pageview {
   id: string
   created_at: Date
 
@@ -23,8 +26,22 @@ const randomDate = (start: Date, end: Date) =>
 
 export const usePageviewGenerator = () => {
   const [pageview, setPageview] = useState<Pageview | null>(null)
+  const [isAddingPageView, setIsAddingPageView] = useState<boolean>(false)
+  const [records, setRecords] = useState<Pageview[]>([])
 
-  const generate = () => {
+  useEffect(() => {
+    axios(`${BASE_URL}/store`).then(res => {
+      setRecords(res.data.data)
+    }).catch(error => {
+      console.log(error)
+    })
+  }, [])
+
+  const generate = async () => {
+    if (isAddingPageView) return;
+
+    setIsAddingPageView(true);
+
     const event: Pageview = {
       id: cuid(),
       created_at: new Date(),
@@ -43,11 +60,18 @@ export const usePageviewGenerator = () => {
       }
     }
 
-    setPageview(event)
+    // add event to datastore
+    await axios.post(`${BASE_URL}/store`, event).then(res => {
+      setRecords(prevState => [res.data.data, ...prevState])
+      setPageview(event)
+      setIsAddingPageView(false)
+    })
   }
 
   return {
     generate,
-    pageview
+    pageview,
+    isAddingPageView,
+    records
   }
 }
